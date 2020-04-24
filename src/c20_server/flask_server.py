@@ -47,6 +47,9 @@ if __name__ == '__main__':
     REDIS_SERVER.connected = True
     REDIS = fakeredis.FakeStrictRedis(server=REDIS_SERVER)
     JOB_MANAGER = JobManager(database=REDIS)
-    JOB_MANAGER.add_job(DocumentsJob('1', 0, '12/28/19', '1/23/20'))
+    initial_jobs = compute_jobs.compute_jobs(API_KEY, START_DATE, END_DATE)
+    for job in initial_jobs:
+        JOB_MANAGER.add_job(job)
+    # JOB_MANAGER.add_job(DocumentsJob('1', 0, '12/28/19', '1/23/20'))
     APP = create_app(JOB_MANAGER)
     APP.run()
