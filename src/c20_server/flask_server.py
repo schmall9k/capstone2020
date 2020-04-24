@@ -3,8 +3,10 @@ import fakeredis
 from flask import Flask, request
 from c20_server.user import User
 from c20_server.job import DocumentsJob
+from c20_server import compute_jobs
 from c20_server.job_manager import JobManager
 from c20_server.job_translator import job_to_json, handle_jobs
+
 
 
 def create_app(job_manager):
