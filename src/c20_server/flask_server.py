@@ -1,6 +1,8 @@
 import json
 import fakeredis
+import os
 from flask import Flask, request
+from dotenv import load_dotenv
 from c20_server.user import User
 from c20_server.job import DocumentsJob
 from c20_server import compute_jobs
@@ -46,10 +48,15 @@ if __name__ == '__main__':
     REDIS_SERVER = fakeredis.FakeServer()
     REDIS_SERVER.connected = True
     REDIS = fakeredis.FakeStrictRedis(server=REDIS_SERVER)
+    load_dotenv()
     JOB_MANAGER = JobManager(database=REDIS)
-    initial_jobs = compute_jobs.compute_jobs(API_KEY, START_DATE, END_DATE)
+    
+    
+    # save API key in .env file and load it in. Dates should be saved in Redis.
+    initial_jobs = compute_jobs.compute_jobs(os.getenv("API_KEY"), "04/01/20", "04/23/20")
     for job in initial_jobs:
         JOB_MANAGER.add_job(job)
-    # JOB_MANAGER.add_job(DocumentsJob('1', 0, '12/28/19', '1/23/20'))
+
+
     APP = create_app(JOB_MANAGER)
     APP.run()
