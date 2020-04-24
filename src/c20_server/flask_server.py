@@ -1,6 +1,7 @@
 import json
-import fakeredis
 import os
+import fakeredis
+import datetime
 from flask import Flask, request
 from dotenv import load_dotenv
 from c20_server.user import User
@@ -50,13 +51,18 @@ if __name__ == '__main__':
     REDIS = fakeredis.FakeStrictRedis(server=REDIS_SERVER)
     load_dotenv()
     JOB_MANAGER = JobManager(database=REDIS)
-    
-    
-    # save API key in .env file and load it in. Dates should be saved in Redis.
-    initial_jobs = compute_jobs.compute_jobs(os.getenv("API_KEY"), "04/01/20", "04/23/20")
-    for job in initial_jobs:
-        JOB_MANAGER.add_job(job)
 
+    # possibly move this to its own function
+    if REDIS.exists('initialize_jobs') is None:
+        REDIS.set('initialize_jobs', 0)
+
+    # save API key in .env file and load it in. Dates should be saved in Redis.
+    # How to get dates initially? Same as API key?
+    # When do we call compute jobs again? When list is empty?
+    INITIAL_JOBS = compute_jobs.compute_jobs(os.getenv("API_KEY"), REDIS.get('start_date'), REDIS.get('end_date'))
+    for job in INITIAL_JOBS:
+        JOB_MANAGER.add_job(job)
+    REDIS.set('initialize_jobs', 1)
 
     APP = create_app(JOB_MANAGER)
-    APP.run()
+    APP.run(host='0.0.0.0')
